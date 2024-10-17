@@ -7,7 +7,6 @@ import ProfileScreen from './ProfileScreen';
 import ListsScreen from './ListsScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import FullScreenSearch from './FullScreenSearch';
-// import { NavigationContainer } from "@react-navigation/native";
 import { Ionicons } from '@expo/vector-icons';
 
 const Stack = createStackNavigator();
@@ -41,7 +40,7 @@ function ScanStack() {
 
 export default function Index() {
   return (
-    // <NavigationContainer>
+    
       <Tab.Navigator
       initialRouteName="Scan"
         screenOptions={({ route }) => ({
@@ -72,6 +71,6 @@ export default function Index() {
         <Tab.Screen name="Scan" component={ScanStack} />
         <Tab.Screen name="Lists" component={ListsScreen} />
       </Tab.Navigator>
-    // </NavigationContainer>
+    
   );
 }
