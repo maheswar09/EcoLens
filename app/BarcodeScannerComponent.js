@@ -7,15 +7,16 @@ import {
   TextInput,
   TouchableOpacity,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
 
 export default function BarcodeScannerComponent() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const [searchText, setSearchText] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -33,18 +34,32 @@ export default function BarcodeScannerComponent() {
         setScanned(false);
         console.log("Scanning state reset automatically");
         console.log("Scanning state reset:", scanned);
-      }, 2000); // Reset after 2 seconds
+      }, 2000);
 
       return () => clearTimeout(timer);
     }
   }, [scanned]);
 
   const handleBarCodeScanned = useCallback(
-    ({ type, data }) => {
+    async ({ type, data }) => {
       if (!scanned) {
-        console.log("Bar code Scanned");
+        console.log("Bar code scanned, fetching product data...");
         setScanned(true);
-        navigation.navigate("SuccessScreen", { type, data });
+        setLoading(true);
+        try {
+          const response = await axios.get(
+            `https://world.openfoodfacts.org/api/v0/product/${data}.json`
+          );
+
+          const product = response.data;
+          console.log("Product data:", product);
+
+          navigation.navigate("SuccessScreen", { type, data, product });
+        } catch (error) {
+          console.error("Error fetching product data:", error);
+        } finally {
+          setLoading(false);
+        }
       }
     },
     [scanned, navigation]
@@ -70,6 +85,12 @@ export default function BarcodeScannerComponent() {
           style={StyleSheet.absoluteFillObject}
         />
       </View>
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text>Fetching product data...</Text>
+        </View>
+      )}
       <View style={styles.contentContainer}>
         <Text style={styles.appName}>ECOLENS</Text>
         <View style={styles.appdesc}>
@@ -140,5 +161,11 @@ const styles = StyleSheet.create({
   },
   searchButton: {
     marginLeft: 10,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
 });

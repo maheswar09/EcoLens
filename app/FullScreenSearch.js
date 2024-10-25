@@ -39,7 +39,7 @@ export default function FullScreenSearch() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 50, // To avoid the status bar overlap
+    paddingTop: 50,
   },
   header: {
     flexDirection: "row",

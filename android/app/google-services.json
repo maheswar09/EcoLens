@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "313503994431",
+    "project_id": "ecolens-a1c86",
+    "storage_bucket": "ecolens-a1c86.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:313503994431:android:145facd7f96ec350e01e8a",
+        "android_client_info": {
+          "package_name": "com.maheswar.ecolens"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0d9De0dHG0bWM9UfCrfNgI1ivenx61XY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
