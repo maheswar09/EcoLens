@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
-import { db } from "../app/firebase";
+import { db } from "../firebase.config";
 
 const ReviewsContext = createContext();
 
