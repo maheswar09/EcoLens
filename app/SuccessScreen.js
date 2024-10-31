@@ -3,9 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
+  TouchableOpacity,
   TextInput,
   Button,
   FlatList,
+  Alert,
   Image,
   Keyboard,
 } from "react-native";
@@ -14,19 +16,39 @@ import { useReviews } from "./ReviewsContext";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Svg, { Circle, G } from "react-native-svg";
 import { MaterialIcons } from "@expo/vector-icons";
+import { handleAddToWishlist } from "./WishlistContext";
 
 const RADIUS = 100;
 const STROKE_WIDTH = 20;
 
 export default function SuccessScreen({ route }) {
   const { product } = route.params;
-
   const { reviewsDB, fetchReviews, addReview } = useReviews();
   const [reviews, setReviews] = useState([]);
   const [rating, setRating] = useState("");
   const [overallRating, setOverallRating] = useState(0);
   const navigation = useNavigation();
-
+  const productNotFound = product.status === 0;
+  const onAddToWishlist = async () => {
+    const result = await handleAddToWishlist(product, navigation);
+    if (result.success) {
+      Alert.alert("Success", result.message);
+    } else if (result.message === "login_required") {
+      Alert.alert(
+        "Login Required",
+        "Please log in to add items to your wishlist.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Log In",
+            onPress: () => navigation.navigate("ProfileScreen"),
+          },
+        ]
+      );
+    } else {
+      Alert.alert("Error", result.message);
+    }
+  };
   useFocusEffect(
     useCallback(() => {
       const productId = product.product.id;
@@ -64,6 +86,7 @@ export default function SuccessScreen({ route }) {
     const average = total / reviews.length;
     setOverallRating(average.toFixed(1));
   };
+
   const placeholderAvatar = require("../assets/images/thumbnail.jpeg");
 
   const getScoreColor = (score) => {
@@ -76,6 +99,7 @@ export default function SuccessScreen({ route }) {
   const ecoScoreValue = product.product.ecoscore_score || 0;
   const normalizedNutriValue = (nutriScoreValue / 100) * 2 * Math.PI * RADIUS;
   const normalizedEcoValue = (ecoScoreValue / 100) * 2 * Math.PI * RADIUS;
+
   const StarRating = ({ rating }) => {
     const totalStars = 5;
     const filledStars = Math.round(rating);
@@ -101,227 +125,277 @@ export default function SuccessScreen({ route }) {
       scrollEnabled={true}
       keyboardShouldPersistTaps="handled"
     >
-      <View>
-        <Text style={styles.productName}>{product.product.product_name}</Text>
-        <Text style={styles.brandText}>Brand: {product.product.brands}</Text>
-        <Text style={styles.label}>Nutri-Score:</Text>
-        <View style={styles.chartContainer}>
-          <Svg
-            height={RADIUS * 2 + STROKE_WIDTH}
-            width={RADIUS * 2 + STROKE_WIDTH}
-          >
-            <Circle
-              cx={RADIUS + STROKE_WIDTH / 2}
-              cy={RADIUS + STROKE_WIDTH / 2}
-              r={RADIUS}
-              stroke="#E0E0E0"
-              strokeWidth={STROKE_WIDTH}
-              fill="none"
-            />
-            <G
-              rotation="-90"
-              origin={`${RADIUS + STROKE_WIDTH / 2}, ${
-                RADIUS + STROKE_WIDTH / 2
-              }`}
-            >
-              <Circle
-                cx={RADIUS + STROKE_WIDTH / 2}
-                cy={RADIUS + STROKE_WIDTH / 2}
-                r={RADIUS}
-                stroke={getScoreColor(nutriScoreValue)}
-                strokeWidth={STROKE_WIDTH}
-                strokeDasharray={`${normalizedNutriValue} ${
-                  2 * Math.PI * RADIUS
-                }`}
-                fill="none"
-              />
-            </G>
-          </Svg>
-          <Text style={styles.chartLabel}>{nutriScoreValue}%</Text>
+      {productNotFound ? (
+        <View style={styles.messageContainer}>
+          <Text style={styles.notFoundText}>Sorry, product not found.</Text>
+          <Button title="Go Back" onPress={() => navigation.goBack()} />
         </View>
-        <View style={styles.tableContainer}>
-          <Text style={styles.tableHeader}>Nutritional Info (per 100g)</Text>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Energy:</Text>
-            <Text style={styles.tableCell}>
-              {Math.round(
-                (product.product.nutriments["energy-kcal_100g"] || 0) * 100
-              ) / 100}{" "}
-              kcal
-            </Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Carbohydrates:</Text>
-            <Text style={styles.tableCell}>
-              {Math.round(
-                (product.product.nutriments.carbohydrates_value || 0) * 100
-              ) / 100}{" "}
-              g
-            </Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Fat:</Text>
-            <Text style={styles.tableCell}>
-              {Math.round((product.product.nutriments.fat_value || 0) * 100) /
-                100}{" "}
-              g
-            </Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Protein:</Text>
-            <Text style={styles.tableCell}>
-              {Math.round(
-                (product.product.nutriments.proteins_value || 0) * 100
-              ) / 100}{" "}
-              g
-            </Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Saturated Fat:</Text>
-            <Text style={styles.tableCell}>
-              {Math.round(
-                (product.product.nutriments["saturated-fat_value"] || 0) * 100
-              ) / 100}{" "}
-              g
-            </Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Sugar:</Text>
-            <Text style={styles.tableCell}>
-              {Math.round(
-                (product.product.nutriments.sugars_value || 0) * 100
-              ) / 100}{" "}
-              g
-            </Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Salt:</Text>
-            <Text style={styles.tableCell}>
-              {Math.round((product.product.nutriments.salt_value || 0) * 100) /
-                100}{" "}
-              g
-            </Text>
-          </View>
-        </View>
-        <Text style={styles.label}>Nutrient Levels:</Text>
-        <View style={styles.badgeContainer}>
-          {product.product.nutrient_levels_tags.map((item, index) => {
-            const formattedItem = item.replace("en:", "").replace(/-/g, " ");
-            const capitalizedItem =
-              formattedItem.charAt(0).toUpperCase() + formattedItem.slice(1);
-            return (
-              <View key={index} style={styles.badge}>
-                <Text style={styles.badgeText}>{capitalizedItem}</Text>
-              </View>
-            );
-          })}
-        </View>
-
-        <Text style={styles.label}>Allergens:</Text>
-        <View style={styles.allergenContainer}>
-          <Text style={styles.allergenText}>
-            {product.product.allergens ? product.product.allergens : "None"}
-          </Text>
-        </View>
-
-        <Text style={styles.label}>EcoScore:</Text>
-        <View style={styles.chartContainer}>
-          <Svg
-            height={RADIUS * 2 + STROKE_WIDTH}
-            width={RADIUS * 2 + STROKE_WIDTH}
-          >
-            <Circle
-              cx={RADIUS + STROKE_WIDTH / 2}
-              cy={RADIUS + STROKE_WIDTH / 2}
-              r={RADIUS}
-              stroke="#E0E0E0"
-              strokeWidth={STROKE_WIDTH}
-              fill="none"
-            />
-            <G
-              rotation="-90"
-              origin={`${RADIUS + STROKE_WIDTH / 2}, ${
-                RADIUS + STROKE_WIDTH / 2
-              }`}
-            >
-              <Circle
-                cx={RADIUS + STROKE_WIDTH / 2}
-                cy={RADIUS + STROKE_WIDTH / 2}
-                r={RADIUS}
-                stroke={getScoreColor(ecoScoreValue)}
-                strokeWidth={STROKE_WIDTH}
-                strokeDasharray={`${normalizedEcoValue} ${
-                  2 * Math.PI * RADIUS
-                }`}
-                fill="none"
-              />
-            </G>
-          </Svg>
-          <Text style={styles.chartLabel}>{ecoScoreValue}%</Text>
-        </View>
+      ) : (
         <View>
-          <Text style={styles.label}>Overall User Rating:</Text>
-          <StarRating rating={overallRating} />
-          <Text style={styles.overallRating}>
-            {overallRating ? `${overallRating} / 5` : "No ratings yet"}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.ratingContainer}>
-        <Text style={styles.label}>Rating (1-5):</Text>
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={rating}
-          onChangeText={(value) => setRating(value)}
-          placeholder="Enter your rating"
-          placeholderTextColor="#A9A9A9"
-        />
-        <View style={styles.buttonWrapper}>
-          <Button title="Submit Rating" onPress={handleAddRating} />
-        </View>
-        <View style={styles.buttonWrapper}>
-          <Button
-            title="Submit a Review"
-            onPress={() => navigation.navigate("SubmitReview", { product })}
-          />
-        </View>
-      </View>
-
-      {/* Reviews List */}
-      <View style={styles.container}>
-        <Text style={styles.sectionTitle}>User Reviews</Text>
-        <FlatList
-          data={reviews.filter((item) => item.text)}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => {
-            const reviewDate =
-              item.date && item.date.seconds
-                ? new Date(item.date.seconds * 1000).toLocaleDateString()
-                : "Unknown Date";
-            return (
-              <View style={styles.reviewItem}>
-                <Image source={placeholderAvatar} style={styles.avatar} />
-                <View style={styles.reviewContent}>
-                  <Text style={styles.reviewName}>
-                    {item.name || "Anonymous"}
-                  </Text>
-                  <Text style={styles.reviewDate}>{reviewDate}</Text>
-                  <Text style={styles.reviewText}>Rating: {item.rating}/5</Text>
-                  <Text style={styles.reviewDescription}>{item.text}</Text>
-                </View>
+          <View>
+            <Text style={styles.productName}>
+              {product.product.product_name}
+            </Text>
+            <Text style={styles.brandText}>
+              Brand: {product.product.brands}
+            </Text>
+            <Text style={styles.label}>Nutri-Score:</Text>
+            <View style={styles.chartContainer}>
+              <Svg
+                height={RADIUS * 2 + STROKE_WIDTH}
+                width={RADIUS * 2 + STROKE_WIDTH}
+              >
+                <Circle
+                  cx={RADIUS + STROKE_WIDTH / 2}
+                  cy={RADIUS + STROKE_WIDTH / 2}
+                  r={RADIUS}
+                  stroke="#E0E0E0"
+                  strokeWidth={STROKE_WIDTH}
+                  fill="none"
+                />
+                <G
+                  rotation="-90"
+                  origin={`${RADIUS + STROKE_WIDTH / 2}, ${
+                    RADIUS + STROKE_WIDTH / 2
+                  }`}
+                >
+                  <Circle
+                    cx={RADIUS + STROKE_WIDTH / 2}
+                    cy={RADIUS + STROKE_WIDTH / 2}
+                    r={RADIUS}
+                    stroke={getScoreColor(nutriScoreValue)}
+                    strokeWidth={STROKE_WIDTH}
+                    strokeDasharray={`${normalizedNutriValue} ${
+                      2 * Math.PI * RADIUS
+                    }`}
+                    fill="none"
+                  />
+                </G>
+              </Svg>
+              <Text style={styles.chartLabel}>{nutriScoreValue}%</Text>
+            </View>
+            <View style={styles.tableContainer}>
+              <Text style={styles.tableHeader}>
+                Nutritional Info (per 100g)
+              </Text>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableCell}>Energy:</Text>
+                <Text style={styles.tableCell}>
+                  {Math.round(
+                    (product.product.nutriments["energy-kcal_100g"] || 0) * 100
+                  ) / 100}{" "}
+                  kcal
+                </Text>
               </View>
-            );
-          }}
-          scrollEnabled={false}
-        />
-      </View>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableCell}>Carbohydrates:</Text>
+                <Text style={styles.tableCell}>
+                  {Math.round(
+                    (product.product.nutriments.carbohydrates_value || 0) * 100
+                  ) / 100}{" "}
+                  g
+                </Text>
+              </View>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableCell}>Fat:</Text>
+                <Text style={styles.tableCell}>
+                  {Math.round(
+                    (product.product.nutriments.fat_value || 0) * 100
+                  ) / 100}{" "}
+                  g
+                </Text>
+              </View>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableCell}>Protein:</Text>
+                <Text style={styles.tableCell}>
+                  {Math.round(
+                    (product.product.nutriments.proteins_value || 0) * 100
+                  ) / 100}{" "}
+                  g
+                </Text>
+              </View>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableCell}>Saturated Fat:</Text>
+                <Text style={styles.tableCell}>
+                  {Math.round(
+                    (product.product.nutriments["saturated-fat_value"] || 0) *
+                      100
+                  ) / 100}{" "}
+                  g
+                </Text>
+              </View>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableCell}>Sugar:</Text>
+                <Text style={styles.tableCell}>
+                  {Math.round(
+                    (product.product.nutriments.sugars_value || 0) * 100
+                  ) / 100}{" "}
+                  g
+                </Text>
+              </View>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableCell}>Salt:</Text>
+                <Text style={styles.tableCell}>
+                  {Math.round(
+                    (product.product.nutriments.salt_value || 0) * 100
+                  ) / 100}{" "}
+                  g
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.label}>Nutrient Levels:</Text>
+            <View style={styles.badgeContainer}>
+              {product.product.nutrient_levels_tags.map((item, index) => {
+                const formattedItem = item
+                  .replace("en:", "")
+                  .replace(/-/g, " ");
+                const capitalizedItem =
+                  formattedItem.charAt(0).toUpperCase() +
+                  formattedItem.slice(1);
+                return (
+                  <View key={index} style={styles.badge}>
+                    <Text style={styles.badgeText}>{capitalizedItem}</Text>
+                  </View>
+                );
+              })}
+            </View>
+
+            <Text style={styles.label}>Allergens:</Text>
+            <View style={styles.allergenContainer}>
+              <Text style={styles.allergenText}>
+                {product.product.allergens ? product.product.allergens : "None"}
+              </Text>
+            </View>
+
+            <Text style={styles.label}>EcoScore:</Text>
+            <View style={styles.chartContainer}>
+              <Svg
+                height={RADIUS * 2 + STROKE_WIDTH}
+                width={RADIUS * 2 + STROKE_WIDTH}
+              >
+                <Circle
+                  cx={RADIUS + STROKE_WIDTH / 2}
+                  cy={RADIUS + STROKE_WIDTH / 2}
+                  r={RADIUS}
+                  stroke="#E0E0E0"
+                  strokeWidth={STROKE_WIDTH}
+                  fill="none"
+                />
+                <G
+                  rotation="-90"
+                  origin={`${RADIUS + STROKE_WIDTH / 2}, ${
+                    RADIUS + STROKE_WIDTH / 2
+                  }`}
+                >
+                  <Circle
+                    cx={RADIUS + STROKE_WIDTH / 2}
+                    cy={RADIUS + STROKE_WIDTH / 2}
+                    r={RADIUS}
+                    stroke={getScoreColor(ecoScoreValue)}
+                    strokeWidth={STROKE_WIDTH}
+                    strokeDasharray={`${normalizedEcoValue} ${
+                      2 * Math.PI * RADIUS
+                    }`}
+                    fill="none"
+                  />
+                </G>
+              </Svg>
+              <Text style={styles.chartLabel}>{ecoScoreValue}%</Text>
+            </View>
+            <View>
+              <Text style={styles.label}>Overall User Rating:</Text>
+              <StarRating rating={overallRating} />
+              <Text style={styles.overallRating}>
+                {overallRating ? `${overallRating} / 5` : "No ratings yet"}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.ratingContainer}>
+            <Text style={styles.label}>Rating (1-5):</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={rating}
+              onChangeText={(value) => setRating(value)}
+              placeholder="Enter your rating"
+              placeholderTextColor="#A9A9A9"
+            />
+            <View style={styles.buttonWrapper}>
+              <Button title="Submit Rating" onPress={handleAddRating} />
+            </View>
+            <View style={styles.buttonWrapper}>
+              <Button
+                title="Submit a Review"
+                onPress={() => navigation.navigate("SubmitReview", { product })}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.wishlistButton}
+              onPress={onAddToWishlist}
+            >
+              <Text style={styles.wishlistButtonText}>Add to Wishlist</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.container}>
+            <Text style={styles.sectionTitle}>User Reviews</Text>
+            <FlatList
+              data={reviews.filter((item) => item.text)}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                const reviewDate =
+                  item.date && item.date.seconds
+                    ? new Date(item.date.seconds * 1000).toLocaleDateString()
+                    : "Unknown Date";
+                return (
+                  <View style={styles.reviewItem}>
+                    <Image source={placeholderAvatar} style={styles.avatar} />
+                    <View style={styles.reviewContent}>
+                      <Text style={styles.reviewName}>
+                        {item.name || "Anonymous"}
+                      </Text>
+                      <Text style={styles.reviewDate}>{reviewDate}</Text>
+                      <Text style={styles.reviewText}>
+                        Rating: {item.rating}/5
+                      </Text>
+                      <Text style={styles.reviewDescription}>{item.text}</Text>
+                    </View>
+                  </View>
+                );
+              }}
+              scrollEnabled={false}
+            />
+          </View>
+        </View>
+      )}
     </KeyboardAwareScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  messageContainer: {
+    alignItems: "center",
+  },
+  notFoundText: {
+    fontSize: 20,
+    color: "red",
+    marginBottom: 20,
+  },
+  wishlistButton: {
+    backgroundColor: "#28a745",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  wishlistButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
   container: {
     flex: 1,
     padding: 15,

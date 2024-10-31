@@ -6,13 +6,17 @@ import SearchResult from "./SearchResult";
 import ProfileScreen from "./ProfileScreen";
 import SubmitReviewScreen from "./SubmitReviewScreen";
 import ListsScreen from "./ListsScreen";
+import RegisterScreen from "./RegisterScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import FullScreenSearch from "./FullScreenSearch";
 import { Ionicons } from "@expo/vector-icons";
+import WishlistItemDetailScreen from "./WishlistItemDetailScreen";
 import { ReviewsProvider } from "./ReviewsContext";
 const Stack = createStackNavigator();
+const MainStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 const productReviewsDB = {};
+
 function ScanStack() {
   return (
     <ReviewsProvider>
@@ -42,13 +46,17 @@ function ScanStack() {
           component={SubmitReviewScreen}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="WishlistItemDetailScreen"
+          component={WishlistItemDetailScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </ReviewsProvider>
   );
 }
 
-export default function Index() {
-  const [reviewsDB, setReviewsDB] = useState(productReviewsDB);
+function TabNavigator() {
   return (
     <Tab.Navigator
       initialRouteName="Scan"
@@ -92,5 +100,22 @@ export default function Index() {
         options={{ headerShown: false }}
       />
     </Tab.Navigator>
+  );
+}
+
+export default function Index() {
+  return (
+    <MainStack.Navigator>
+      <MainStack.Screen
+        name="MainTabs"
+        component={TabNavigator}
+        options={{ headerShown: false }}
+      />
+      <MainStack.Screen
+        name="Register"
+        component={RegisterScreen}
+        options={{ headerShown: false }}
+      />
+    </MainStack.Navigator>
   );
 }

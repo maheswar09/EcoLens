@@ -32,8 +32,8 @@ export default function BarcodeScannerComponent() {
     if (scanned) {
       const timer = setTimeout(() => {
         setScanned(false);
-        console.log("Scanning state reset automatically");
-        console.log("Scanning state reset:", scanned);
+        // console.log("Scanning state reset automatically");
+        // console.log("Scanning state reset:", scanned);
       }, 2000);
 
       return () => clearTimeout(timer);
@@ -52,7 +52,7 @@ export default function BarcodeScannerComponent() {
           );
 
           const product = response.data;
-          console.log("Product data:", product);
+          // console.log("Product data:", product);
 
           navigation.navigate("SuccessScreen", { type, data, product });
         } catch (error) {

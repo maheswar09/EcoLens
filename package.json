@@ -16,8 +16,11 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.4",
+    "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-native-firebase/app": "^21.2.0",
+    "@react-native-firebase/auth": "^21.2.0",
     "@react-native-firebase/firestore": "^21.2.0",
+    "@react-native-google-signin/google-signin": "^13.1.0",
     "@react-navigation/bottom-tabs": "^6.6.1",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
@@ -47,7 +50,8 @@
     "react-native-svg-transformer": "^1.5.0",
     "react-native-vision-camera": "^4.5.3",
     "react-native-web": "~0.19.10",
-    "vision-camera-code-scanner": "^0.2.0"
+    "vision-camera-code-scanner": "^0.2.0",
+    "expo-auth-session": "~5.5.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
