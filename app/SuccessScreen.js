@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -17,18 +17,72 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import Svg, { Circle, G } from "react-native-svg";
 import { MaterialIcons } from "@expo/vector-icons";
 import { handleAddToWishlist } from "./WishlistContext";
-
+import { Share } from "react-native";
+import axios from "axios";
 const RADIUS = 100;
 const STROKE_WIDTH = 20;
 
 export default function SuccessScreen({ route }) {
   const { product } = route.params;
+  const [alternativeProducts, setAlternativeProducts] = useState([]);
   const { reviewsDB, fetchReviews, addReview } = useReviews();
   const [reviews, setReviews] = useState([]);
   const [rating, setRating] = useState("");
   const [overallRating, setOverallRating] = useState(0);
   const navigation = useNavigation();
   const productNotFound = product.status === 0;
+  const onShare = async () => {
+    try {
+      const result = await Share.share({
+        message: `Check out this product: ${product.product.product_name} by ${product.product.brands}\n\nView on Open Food Facts: https://world.openfoodfacts.org/product/${product.product.code}`,
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+          console.log("Shared with activity type:", result.activityType);
+        } else {
+          // shared
+          console.log("Shared");
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+        console.log("Share dismissed");
+      }
+    } catch (error) {
+      Alert.alert("Error sharing", error.message);
+    }
+  };
+  const fetchAlternativeProducts = useCallback(async () => {
+    if (
+      !product.product.compared_to_category ||
+      !product.product.nutriments["nutrition-score-fr"]
+    )
+      return;
+
+    const category = encodeURIComponent(product.product.compared_to_category);
+    const currentNutriScore = product.product.nutriments["nutrition-score-fr"];
+
+    try {
+      const response = await axios.get(
+        `https://world.openfoodfacts.org/cgi/search.pl?action=process&tagtype_0=categories&tag_contains_0=contains&tag_0=${category}&nutriment_0=nutrition-score-fr&nutriment_compare_0=gt&nutriment_value_0=${currentNutriScore}&json=1&page_size=5&page=1`
+      );
+      // console.log("API Response:", response.data);
+      setAlternativeProducts(
+        response.data.products.filter((p) => p.code !== product.product.code)
+      );
+    } catch (error) {
+      console.error("Error fetching alternative products:", error);
+    }
+  }, [product]);
+
+  useEffect(() => {
+    fetchAlternativeProducts();
+  }, [fetchAlternativeProducts]);
+  const handleAlternativeProductPress = (selectedProduct) => {
+    navigation.push("SuccessScreen", { product: { product: selectedProduct } });
+  };
+
   const onAddToWishlist = async () => {
     const result = await handleAddToWishlist(product, navigation);
     if (result.success) {
@@ -338,6 +392,48 @@ export default function SuccessScreen({ route }) {
               <Text style={styles.wishlistButtonText}>Add to Wishlist</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity style={styles.shareButton} onPress={onShare}>
+            <MaterialIcons name="share" size={24} color="white" />
+            <Text style={styles.shareButtonText}>Share</Text>
+          </TouchableOpacity>
+
+          {alternativeProducts.length > 0 ? (
+            <View style={styles.alternativeProductsContainer}>
+              <Text style={styles.sectionTitle}>Alternative Products</Text>
+              <FlatList
+                data={alternativeProducts}
+                horizontal
+                keyExtractor={(item) => item.code}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.alternativeProductItem}
+                    onPress={() => handleAlternativeProductPress(item)}
+                  >
+                    <Image
+                      source={{ uri: item.image_small_url }}
+                      style={styles.alternativeProductImage}
+                    />
+                    <Text style={styles.alternativeProductBrand}>
+                      {item.brands}
+                    </Text>
+                    <Text style={styles.alternativeProductName}>
+                      {item.product_name}
+                    </Text>
+                    <Text style={styles.alternativeProductNutriScore}>
+                      Nutri-Score: {item.nutriscore_score}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          ) : (
+            <View style={styles.noAlternativesContainer}>
+              <Text style={styles.sectionTitle}>Alternative Products</Text>
+              <Text style={styles.noAlternativesText}>
+                No alternative products found
+              </Text>
+            </View>
+          )}
 
           <View style={styles.container}>
             <Text style={styles.sectionTitle}>User Reviews</Text>
@@ -570,5 +666,60 @@ const styles = StyleSheet.create({
   reviewDescription: {
     fontSize: 14,
     color: "#666",
+  },
+
+  alternativeProductsContainer: {
+    marginTop: 20,
+  },
+  alternativeProductItem: {
+    marginRight: 15,
+    width: 120,
+  },
+  alternativeProductImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 10,
+  },
+  alternativeProductBrand: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 5,
+  },
+  alternativeProductName: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginTop: 2,
+  },
+  alternativeProductNutriScore: {
+    fontSize: 12,
+    color: "#28a745",
+    marginTop: 2,
+  },
+  noAlternativesContainer: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  noAlternativesText: {
+    fontSize: 16,
+    color: "#666",
+    fontStyle: "italic",
+  },
+  shareButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#3b5998",
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 20,
+  },
+  shareButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 10,
   },
 });

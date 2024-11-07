@@ -34,7 +34,7 @@ export default function BarcodeScannerComponent() {
         setScanned(false);
         // console.log("Scanning state reset automatically");
         // console.log("Scanning state reset:", scanned);
-      }, 2000);
+      }, 3000);
 
       return () => clearTimeout(timer);
     }
