@@ -2,15 +2,31 @@ import React, { useState } from "react";
 import { View, TextInput, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios"; // Import axios for making the API request
 
 export default function FullScreenSearch() {
   const [searchText, setSearchText] = useState("");
   const navigation = useNavigation();
 
-  const handleSearch = () => {
-    console.log("searching for:", searchText);
-    navigation.replace("SearchResult", { productName: searchText });
-    setSearchText("");
+  const handleSearch = async () => {
+    if (searchText.trim()) {
+      try {
+        const response = await axios.get(
+          `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${searchText}&search_simple=1&action=process&json=true`
+        );
+
+        const products = response.data.products || [];
+        if (products.length > 0) {
+          navigation.replace("SearchResult", { products });
+        } else {
+          console.log("No products found");
+        }
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      } finally {
+        setSearchText("");
+      }
+    }
   };
 
   return (

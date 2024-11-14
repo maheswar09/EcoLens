@@ -11,6 +11,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import FullScreenSearch from "./FullScreenSearch";
 import { Ionicons } from "@expo/vector-icons";
 import WishlistItemDetailScreen from "./WishlistItemDetailScreen";
+import UploadProductDataScreen from "./UploadProductDataScreen";
 import { ReviewsProvider } from "./ReviewsContext";
 const Stack = createStackNavigator();
 const MainStack = createStackNavigator();
@@ -49,6 +50,11 @@ function ScanStack() {
         <Stack.Screen
           name="WishlistItemDetailScreen"
           component={WishlistItemDetailScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="UploadProductDataScreen"
+          component={UploadProductDataScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

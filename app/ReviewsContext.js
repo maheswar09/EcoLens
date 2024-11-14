@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useState } from "react";
-import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  getDoc,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
 import { db } from "../firebase.config";
 
 const ReviewsContext = createContext();
@@ -43,6 +52,10 @@ export const ReviewsProvider = ({ children }) => {
         name: reviewData.name,
         rating: reviewData.rating,
         text: reviewData.text,
+        votes: {
+          upvotes: 0,
+          downvotes: 0,
+        },
       });
 
       fetchReviews(productId);
@@ -51,8 +64,61 @@ export const ReviewsProvider = ({ children }) => {
     }
   };
 
+  const upvoteReview = async (reviewId, productId) => {
+    try {
+      const reviewRef = doc(db, "reviews", reviewId);
+      const reviewSnap = await getDoc(reviewRef);
+      const currentVotes = reviewSnap.data().votes || {
+        upvotes: 0,
+        downvotes: 0,
+      };
+
+      await updateDoc(reviewRef, {
+        votes: {
+          upvotes: currentVotes.upvotes + 1,
+          downvotes: currentVotes.downvotes,
+        },
+      });
+
+      fetchReviews(productId);
+    } catch (error) {
+      console.error("Error upvoting review: ", error);
+    }
+  };
+
+  const downvoteReview = async (reviewId, productId) => {
+    try {
+      const reviewRef = doc(db, "reviews", reviewId);
+      const reviewSnap = await getDoc(reviewRef);
+      const currentVotes = reviewSnap.data().votes || {
+        upvotes: 0,
+        downvotes: 0,
+      };
+
+      await updateDoc(reviewRef, {
+        votes: {
+          upvotes: currentVotes.upvotes,
+          downvotes: currentVotes.downvotes + 1,
+        },
+      });
+
+      fetchReviews(productId);
+    } catch (error) {
+      console.error("Error downvoting review: ", error);
+    }
+  };
+
   return (
-    <ReviewsContext.Provider value={{ reviewsDB, fetchReviews, addReview }}>
+    <ReviewsContext.Provider
+      value={{
+        reviewsDB,
+        loading,
+        fetchReviews,
+        addReview,
+        upvoteReview,
+        downvoteReview,
+      }}
+    >
       {children}
     </ReviewsContext.Provider>
   );

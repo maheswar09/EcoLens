@@ -54,7 +54,11 @@ export default function BarcodeScannerComponent() {
           const product = response.data;
           // console.log("Product data:", product);
 
-          navigation.navigate("SuccessScreen", { type, data, product });
+          if (product && product.status === 1) {
+            navigation.navigate("SuccessScreen", { type, data, product });
+          } else {
+            navigation.navigate("UploadProductDataScreen", { barcode: data });
+          }
         } catch (error) {
           console.error("Error fetching product data:", error);
         } finally {

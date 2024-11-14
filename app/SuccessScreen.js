@@ -15,22 +15,32 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useReviews } from "./ReviewsContext";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Svg, { Circle, G } from "react-native-svg";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { handleAddToWishlist } from "./WishlistContext";
 import { Share } from "react-native";
 import axios from "axios";
+import { Asset } from "expo-asset";
 const RADIUS = 100;
 const STROKE_WIDTH = 20;
 
 export default function SuccessScreen({ route }) {
   const { product } = route.params;
+  console.log("Product data:", product);
   const [alternativeProducts, setAlternativeProducts] = useState([]);
-  const { reviewsDB, fetchReviews, addReview } = useReviews();
+  const {
+    reviewsDB,
+    fetchReviews,
+    addReview,
+    upvoteReview,
+    downvoteReview,
+    loading,
+  } = useReviews();
   const [reviews, setReviews] = useState([]);
   const [rating, setRating] = useState("");
   const [overallRating, setOverallRating] = useState(0);
   const navigation = useNavigation();
   const productNotFound = product.status === 0;
+
   const onShare = async () => {
     try {
       const result = await Share.share({
@@ -141,7 +151,10 @@ export default function SuccessScreen({ route }) {
     setOverallRating(average.toFixed(1));
   };
 
-  const placeholderAvatar = require("../assets/images/thumbnail.jpeg");
+  const imageAsset = Asset.fromModule(
+    require("../assets/images/thumbnail.jpeg")
+  );
+  // await imageAsset.downloadAsync();
 
   const getScoreColor = (score) => {
     if (score > 75) return "#3BB273";
@@ -445,9 +458,16 @@ export default function SuccessScreen({ route }) {
                   item.date && item.date.seconds
                     ? new Date(item.date.seconds * 1000).toLocaleDateString()
                     : "Unknown Date";
+                const { upvotes, downvotes } = item.votes || {
+                  upvotes: 0,
+                  downvotes: 0,
+                };
                 return (
                   <View style={styles.reviewItem}>
-                    <Image source={placeholderAvatar} style={styles.avatar} />
+                    <Image
+                      source={{ uri: imageAsset.uri }}
+                      style={styles.avatar}
+                    />
                     <View style={styles.reviewContent}>
                       <Text style={styles.reviewName}>
                         {item.name || "Anonymous"}
@@ -457,6 +477,37 @@ export default function SuccessScreen({ route }) {
                         Rating: {item.rating}/5
                       </Text>
                       <Text style={styles.reviewDescription}>{item.text}</Text>
+
+                      {/* Upvote and Downvote Buttons */}
+                      <View style={styles.voteContainer}>
+                        <TouchableOpacity
+                          style={styles.voteButton}
+                          onPress={() =>
+                            upvoteReview(item.id, product.product.id)
+                          }
+                        >
+                          <FontAwesome
+                            name="thumbs-up"
+                            size={20}
+                            color="green"
+                          />
+                          <Text>{upvotes}</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={styles.voteButton}
+                          onPress={() =>
+                            downvoteReview(item.id, product.product.id)
+                          }
+                        >
+                          <FontAwesome
+                            name="thumbs-down"
+                            size={20}
+                            color="red"
+                          />
+                          <Text>{downvotes}</Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 );
@@ -721,5 +772,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     marginLeft: 10,
+  },
+  voteContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  voteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 15,
   },
 });
