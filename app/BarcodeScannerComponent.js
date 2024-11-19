@@ -46,21 +46,51 @@ export default function BarcodeScannerComponent() {
         console.log("Bar code scanned, fetching product data...");
         setScanned(true);
         setLoading(true);
+
+        const fetchProductData = async (url) => {
+          try {
+            const response = await axios.get(url);
+
+            return response.data;
+          } catch (error) {
+            if (error.response && error.response.status === 404) {
+              // console.warn("Product not found:", url);
+              return null; // Product not found in the database
+            } else {
+              console.error("Error fetching product data:", error.message);
+              throw error; // Re-throw other errors
+            }
+          }
+        };
+
         try {
-          const response = await axios.get(
+          let product = null;
+
+          // Try fetching from Open Food Facts
+          product = await fetchProductData(
             `https://world.openfoodfacts.org/api/v0/product/${data}.json`
           );
 
-          const product = response.data;
+          if (!product || product.status !== 1) {
+            // If not found, try fetching from Open Beauty Facts
+            // console.log(
+            //   "Product not found in Open Food Facts. Trying Open Beauty Facts..."
+            // );
+            product = await fetchProductData(
+              `https://world.openbeautyfacts.org/api/v0/product/${data}.json`
+            );
+          }
           // console.log("Product data:", product);
-
           if (product && product.status === 1) {
+            // Navigate to SuccessScreen with product data
             navigation.navigate("SuccessScreen", { type, data, product });
           } else {
+            // Navigate to UploadProductDataScreen if not found in both APIs
             navigation.navigate("UploadProductDataScreen", { barcode: data });
           }
         } catch (error) {
-          console.error("Error fetching product data:", error);
+          console.error("Unexpected error:", error.message);
+          alert("Something went wrong. Please try again.");
         } finally {
           setLoading(false);
         }

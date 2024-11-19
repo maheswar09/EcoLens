@@ -25,7 +25,7 @@ const STROKE_WIDTH = 20;
 
 export default function SuccessScreen({ route }) {
   const { product } = route.params;
-  console.log("Product data:", product);
+  // console.log("Product data:", product);
   const [alternativeProducts, setAlternativeProducts] = useState([]);
   const {
     reviewsDB,
