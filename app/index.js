@@ -26,6 +26,7 @@ function ScanStack() {
           name="Scanner"
           component={BarcodeScannerComponent}
           options={{ headerShown: false }}
+          key={Date.now()}
         />
         <Stack.Screen
           name="SuccessScreen"

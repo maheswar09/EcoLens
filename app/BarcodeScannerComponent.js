@@ -10,13 +10,14 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import axios from "axios";
 
 export default function BarcodeScannerComponent() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -28,21 +29,20 @@ export default function BarcodeScannerComponent() {
 
     getBarCodeScannerPermissions();
   }, []);
-  useEffect(() => {
-    if (scanned) {
-      const timer = setTimeout(() => {
-        setScanned(false);
-        // console.log("Scanning state reset automatically");
-        // console.log("Scanning state reset:", scanned);
-      }, 3000);
 
-      return () => clearTimeout(timer);
-    }
-  }, [scanned]);
+  useFocusEffect(
+    useCallback(() => {
+      setIsFocused(true);
+      setScanned(false);
+      return () => {
+        setIsFocused(false);
+      };
+    }, [])
+  );
 
   const handleBarCodeScanned = useCallback(
     async ({ type, data }) => {
-      if (!scanned) {
+      if (!scanned && isFocused) {
         console.log("Bar code scanned, fetching product data...");
         setScanned(true);
         setLoading(true);
@@ -96,7 +96,7 @@ export default function BarcodeScannerComponent() {
         }
       }
     },
-    [scanned, navigation]
+    [scanned, navigation, isFocused]
   );
 
   const navigateToFullScreenSearch = () => {
@@ -113,11 +113,12 @@ export default function BarcodeScannerComponent() {
   return (
     <View style={styles.container}>
       <View style={styles.scannerContainer}>
-        <BarCodeScanner
-          key={scanned ? "scanned" : "not-scanned"}
-          onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-          style={StyleSheet.absoluteFillObject}
-        />
+        {isFocused && (
+          <BarCodeScanner
+            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+            style={StyleSheet.absoluteFillObject}
+          />
+        )}
       </View>
       {loading && (
         <View style={styles.loadingOverlay}>
