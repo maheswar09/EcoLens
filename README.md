@@ -1,54 +1,63 @@
-# EcoLens
+Here's a README file for your project **EcoLens** based on the provided document:  
 
-The Sustainable Product Scanner app is designed to empower consumers to make informed choices about the products they purchase.
+---
 
-# Welcome to your Expo app 👋
+# EcoLens  
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Overview  
+**EcoLens** is a mobile app that lets users scan product barcodes to instantly access sustainability data, including environmental impact, ethical sourcing, and recyclability. It helps consumers make eco-friendly choices, create shopping lists, and contribute reviews for a greener future.  
 
-## Get started
+## Features  
+- **Product Scanning**: Scan product barcodes to retrieve sustainability scores.  
+- **Product Details**: View sustainability data, ethical sourcing, and recyclability details.  
+- **User Reviews & Ratings**: See and submit sustainability reviews.  
+- **Shopping List & Wishlist**: Save eco-friendly products for future purchases.  
+- **User Profile**: Track scans, reviews, and eco-preferences.  
 
-1. Install dependencies
+## Tech Stack  
+- **Frontend**: React Native  
+- **Backend**: Firebase (Authentication, Firestore)  
+- **API**: Open Food Facts API (Product data)  
+- **Libraries**:  
+  - Barcode Scanner (React Native Camera)  
+  - Axios (API requests)  
+  - Formik + Yup (Form validation)  
 
+## Installation  
+1. Clone the repository:  
+   ```bash
+   git clone https://github.com/maheswar09/EcoLens.git
+   ```
+2. Navigate to the project directory:  
+   ```bash
+   cd EcoLens
+   ```
+3. Install dependencies:  
    ```bash
    npm install
    ```
-
-2. Start the app 
-
+4. Run the application:  
    ```bash
-    npx expo start
+   npm start
    ```
 
-In the output, you'll find options to open the app in a
+## Project Milestones  
+- **Milestone 1**: Barcode scanning, basic UI setup.  
+- **Milestone 2**: Product data retrieval & reviews.  
+- **Milestone 3**: Shopping list & authentication.  
+- **Milestone 4**: Visual sustainability metrics & social sharing.  
+- **Milestone 5**: Photo submission for missing products.  
+- **Final Milestone**: Additional API sources & community features.  
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Contribution  
+1. Fork the repository.  
+2. Create a new branch:  
+   ```bash
+   git checkout -b feature-branch
+   ```
+3. Commit changes and push:  
+   ```bash
+   git commit -m "Add new feature"
+   git push origin feature-branch
+   ```
+4. Open a pull request.  
