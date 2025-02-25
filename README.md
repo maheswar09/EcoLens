@@ -1,7 +1,3 @@
-Here's a README file for your project **EcoLens** based on the provided document:  
-
----
-
 # EcoLens  
 
 ## Overview  
